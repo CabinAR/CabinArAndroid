@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<style>
+    body { margin: 0; }
+        canvas { width: 100%; height: 100% }
+</style>
+<script src='./aframe.min.js'></script>
+<script src='./aframe-text-geometry-component.min.js'></script>
+<script src='./aframe-particle-system-component.min.js'></script>
+</head>
+<body>
+    <a-scene vr-mode-ui="enabled: false" background="transparent:true;" cursor="rayOrigin: mouse">
+        <a-assets id='cabinar-assets'></a-assets>
+        <a-entity id="cameraWrapper"  position="1 0 3" rotation="0 0 0">
+            <a-entity camera id='theCamera'></a-entity>
+        </a-entity>
+        <a-entity id="cabinar-scene" position="0 0 0">
+            <a-box src='#file-41-gus-rainbow-jpg' position="0 0 0"animation="property: rotation; to: 0 360 0; loop: true; dur: 10000"></a-box>
+        </a-entity>
+
+    </a-scene>
+
+    <script>
+    var pieces = {};
+    var wrappers = {};
+    var sceneEl;
+    var assetsEl = document.getElementById("cabinar-assets");
+
+    var cameraObj;
+    var cameraComponent;
+
+    window.addEventListener("load",function() {
+        cameraObj = document.getElementById("cameraWrapper").object3D
+        cameraComponent = document.getElementById("theCamera").getObject3D("camera")
+        sceneEl = document.getElementById("cabinar-scene");
+
+    });
+
+    function hideAllPieces() {
+        Object.keys(pieces).forEach(function(pieceId) {
+                                           var object3D = wrappers[pieceId].object3D;
+                                           object3D.visible = false;
+                                           })
+    }
+
+    function addAssets(assets) {
+        assetsEl.innerHTML = assets;
+    }
+
+    function setPieceEntity(pieceId, pieceScale, pieceMarkup ) {
+        var piece = document.getElementById("piece-" + pieceId)
+
+        if(!piece) {
+           var wrapper = document.createElement("a-entity")
+           wrapper.setAttribute("id","wrapper-" + pieceId )
+           wrapper.setAttribute("visible",false)
+
+           var piece = document.createElement("a-entity")
+           piece.setAttribute("id","piece-" + pieceId )
+           piece.setAttribute("scale",`${pieceScale} ${pieceScale} ${pieceScale}`)
+
+           wrapper.appendChild(piece)
+
+           sceneEl.appendChild(wrapper)
+           wrappers[pieceId] = wrapper;
+           pieces[pieceId] = piece;
+        }
+        piece.innerHTML = pieceMarkup;
+    }
+
+    function setScenePostParams(pieceMatrices,c,projection) {
+        cameraObj.matrixAutoUpdate = false
+        cameraObj.matrix.set.apply(cameraObj.matrix,c)
+
+        cameraComponent.projectionMatrix.set.apply(cameraComponent.projectionMatrix,projection);
+        cameraComponent.projectionMatrixInverse.getInverse( cameraComponent.projectionMatrix );
+
+        Object.keys(pieceMatrices).forEach(function(pieceId) {
+                                           var object3D = wrappers[pieceId].object3D
+                                           if(!object3D.visible) {
+                                              object3D.visible = true;
+                                           }
+                                           object3D.matrixAutoUpdate = false;
+                                           object3D.matrix.set.apply(object3D.matrix,pieceMatrices[pieceId]);
+                                           })
+    }
+</script>
+
+</body>

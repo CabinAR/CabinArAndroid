@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">CabinAR</string>
+    <string name="title_activity_space_view">SpaceViewActivity</string>
+</resources>
