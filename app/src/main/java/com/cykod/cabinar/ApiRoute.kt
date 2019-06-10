@@ -17,8 +17,9 @@ sealed class ApiRoute {
     val url: String
         get() {
             return "$baseUrl/${when (this) {
-                is GetSpaces -> "spaces?latitude=${this.latitude?.toString() ?: ""}&longitude=${this.longitude?.toString() ?: ""}"
-                is GetSpace -> "spaces/$spaceId"
+                is GetSpaces -> "spaces?latitude=${this.latitude?.toString() ?: ""}&longitude=${this.longitude?.toString() ?: ""}&api_key=${this.apiToken?.toString() ?: ""}"
+                is GetSpace -> "spaces/$spaceId?api_key=${this.apiToken?.toString() ?: ""}"
+                is GetUser -> "logins?api_key=${this.apiToken}"
                 else -> ""
             }}"
         }
@@ -43,6 +44,7 @@ sealed class ApiRoute {
             }
         }
 
-    data class GetSpaces(var latitude: Double?, var longitude: Double?, var ctx: Context) : ApiRoute()
-    data class GetSpace(var spaceId: Int, var ctx: Context) : ApiRoute()
+    data class GetSpaces(var latitude: Double?, var longitude: Double?, var apiToken: String?, var ctx: Context) : ApiRoute()
+    data class GetSpace(var spaceId: Int, var apiToken: String?, var ctx: Context) : ApiRoute()
+    data class GetUser(var apiToken: String) : ApiRoute()
 }

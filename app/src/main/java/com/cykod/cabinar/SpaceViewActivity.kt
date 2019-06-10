@@ -78,7 +78,10 @@ class SpaceViewActivity : AppCompatActivity() {
         arFragment.getArSceneView().getPlaneRenderer().setEnabled(false)
 
         spaceId = intent.extras!!.getInt(EXTRA_ID)
-        apiClient = ApiClient(applicationContext)
+        var sharedPref = this.getPreferences(Context.MODE_PRIVATE)
+        var apiToken = sharedPref.getString("api_token",null)
+
+        apiClient = ApiClient(applicationContext,apiToken)
 
         arWebview = findViewById(R.id.webview) as WebView
         arWebview.setBackgroundColor(0)

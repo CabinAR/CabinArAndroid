@@ -8,7 +8,7 @@ import com.android.volley.toolbox.HurlStack
 import com.android.volley.toolbox.StringRequest
 import com.google.gson.GsonBuilder
 
-class ApiClient(private val ctx: Context) {
+class ApiClient(private val ctx: Context, private val apiToken: String?) {
 
     /***
      * PERFORM REQUEST
@@ -73,7 +73,7 @@ class ApiClient(private val ctx: Context) {
     }
 
     fun getSpaces(latitude: Double?, longitude: Double?,completion: (ArrayList<CabinSpace>?, message:String) -> Unit) {
-        val route = ApiRoute.GetSpaces(latitude, longitude, ctx)
+        val route = ApiRoute.GetSpaces(latitude, longitude, apiToken, ctx)
         this.performRequest(route) { success, response ->
             if(success) {
                 val gsonBuilder = GsonBuilder().serializeNulls()
@@ -90,7 +90,7 @@ class ApiClient(private val ctx: Context) {
     }
 
     fun getSpace(spaceId: Int, completion: (CabinSpace?, message:String) -> Unit) {
-        val route = ApiRoute.GetSpace(spaceId, ctx)
+        val route = ApiRoute.GetSpace(spaceId, apiToken, ctx)
         this.performRequest(route) { success, response ->
             if(success) {
                 val gsonBuilder = GsonBuilder().serializeNulls()
