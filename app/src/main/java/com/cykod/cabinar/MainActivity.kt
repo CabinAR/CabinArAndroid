@@ -16,11 +16,6 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import android.R
-
-
-
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -141,6 +136,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun grabLocation() {
+        swipeRefreshLayout.isRefreshing = true
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION
             )
@@ -161,6 +157,7 @@ class MainActivity : AppCompatActivity() {
 
     fun getSpaces(latitude: Double?, longitude: Double?) {
         apiClient.getSpaces(latitude,longitude) { spaces, message ->
+            swipeRefreshLayout.isRefreshing = false
             if(spaces != null) {
                 listItems.clear()
                 for (space in spaces) {
