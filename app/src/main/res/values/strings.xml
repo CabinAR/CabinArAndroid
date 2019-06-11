@@ -3,4 +3,15 @@
     <string name="title_activity_space_view">SpaceViewActivity</string>
     <string name="title_activity_options_activiy">OptionsActiviy</string>
     <string name="title_activity_options">OptionsActivity</string>
+    <string name="connect_account">Optionally connect your online account this app</string>
+    <string name="cabin_key">Cabin Key:</string>
+    <string name='connect_button'>Login</string>
+    <string name="cabin_key_details">Find your unique Cabin Key by visiting My Accounts on cabin-ar.com</string>
+    <string name="about_cabinar">ABOUT CABINAR</string>
+    <string name="create_and_share">CabinAR is built using A-frame and ARCore so you can easily create and share WebXR
+        content.
+    </string>
+    <string name="logout">logout</string>
+    <string name="user_account">User Account</string>
+    <string name="user_user_com">user@user.com</string>
 </resources>

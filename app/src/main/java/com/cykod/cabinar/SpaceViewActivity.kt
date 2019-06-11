@@ -26,6 +26,8 @@ import kotlinx.android.synthetic.main.activity_space_view.*
 import java.io.IOException
 import java.util.HashMap
 import android.webkit.WebViewClient
+import androidx.appcompat.app.AlertDialog
+import com.google.ar.core.exceptions.ImageInsufficientQualityException
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -40,6 +42,8 @@ class SpaceViewActivity : AppCompatActivity() {
     private var cabinSpace:CabinSpace? = null
 
     private lateinit var apiClient: ApiClient
+
+    private var showScan = true
 
     private val augmentedImageMap: MutableMap<AugmentedImage, AnchorNode> = mutableMapOf()
 
@@ -78,7 +82,9 @@ class SpaceViewActivity : AppCompatActivity() {
         arFragment.getArSceneView().getPlaneRenderer().setEnabled(false)
 
         spaceId = intent.extras!!.getInt(EXTRA_ID)
-        var sharedPref = this.getPreferences(Context.MODE_PRIVATE)
+
+
+        var sharedPref = this.getSharedPreferences("cabinar",Context.MODE_PRIVATE)
         var apiToken = sharedPref.getString("api_token",null)
 
         apiClient = ApiClient(applicationContext,apiToken)
@@ -102,10 +108,24 @@ class SpaceViewActivity : AppCompatActivity() {
         }
     }
 
+    fun errorOut(title:String, message:String) {
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton("ok") { _, _ ->
+                this.finish()
+            }.show();
+    }
+
     fun getSpace(spaceId: Int) {
         apiClient.getSpace(spaceId) { space, message ->
-            cabinSpace = space
-            setupSpace()
+            if(space != null) {
+                cabinSpace = space
+                setupSpace()
+            } else {
+                errorOut("Could not load space", "Check your network connection and retry")
+            }
         }
     }
 
@@ -153,11 +173,16 @@ class SpaceViewActivity : AppCompatActivity() {
 
             for ((index, bitmap) in bitmaps.withIndex()) {
                 if(bitmap != null) {
-                    var pos = imageDatabase!!.addImage(
-                        pieces[index].id.toString(),
-                        bitmap
-                    )
-                    Log.e("CabinAR", "Added images $pos")
+                    try {
+                        var pos = imageDatabase!!.addImage(
+                            pieces[index].id.toString(),
+                            bitmap
+                        )
+                        Log.e("CabinAR", "Added images $pos")
+                    } catch(e: ImageInsufficientQualityException) {
+                        errorOut("Space has bad Markers", "The markers are of insufficient quality. Please upload better markers.")
+
+                    }
                 }
             }
             config.augmentedImageDatabase = imageDatabase
@@ -175,10 +200,12 @@ class SpaceViewActivity : AppCompatActivity() {
 
     fun assetString() : String {
         var allAssets = ""
-        for (piece  in cabinSpace!!.pieces) {
-            if(piece.assets != null) {
-                val assets = (piece.assets ?: "").replace("\"/ar-file", "\"https://www.cabin-ar.com/ar-file")
-                allAssets = allAssets + assets + "\n"
+        if(cabinSpace!!.pieces != null) {
+            for (piece in cabinSpace!!.pieces) {
+                if (piece.assets != null) {
+                    val assets = (piece.assets ?: "").replace("\"/ar-file", "\"https://www.cabin-ar.com/ar-file")
+                    allAssets = allAssets + assets + "\n"
+                }
             }
         }
         return "addAssets(`$allAssets`);"
@@ -244,6 +271,10 @@ class SpaceViewActivity : AppCompatActivity() {
                 }
 
                 TrackingState.TRACKING -> {
+                    if(showScan) {
+                        fit_to_scan.visibility = View.GONE
+                        showScan = false
+                    }
                     // Have to switch to UI Thread to update View.
                     //fitToScanView.setVisibility(View.GONE)
                     // Create a new anchor for newly found images.

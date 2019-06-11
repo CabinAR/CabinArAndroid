@@ -40,3 +40,12 @@ data class CabinPiece(
 ) {
 
 }
+
+data class CabinUser(
+    @SerializedName("id")
+    var id: Int,
+    @SerializedName("api_token")
+    var api_token: String,
+    @SerializedName("email")
+    var email: String
+) {}

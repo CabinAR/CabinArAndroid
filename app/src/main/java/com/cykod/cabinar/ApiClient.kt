@@ -8,7 +8,7 @@ import com.android.volley.toolbox.HurlStack
 import com.android.volley.toolbox.StringRequest
 import com.google.gson.GsonBuilder
 
-class ApiClient(private val ctx: Context, private val apiToken: String?) {
+class ApiClient(private val ctx: Context, var apiToken: String?) {
 
     /***
      * PERFORM REQUEST
@@ -102,6 +102,29 @@ class ApiClient(private val ctx: Context, private val apiToken: String?) {
                 completion.invoke(null, response)
             }
         }
+
+    }
+
+    fun getUser(completion: (user:CabinUser?, message:String) -> Unit) {
+        val route = ApiRoute.GetUser(apiToken, ctx)
+        this.performRequest(route) { success, response ->
+            if(success) {
+                val gsonBuilder = GsonBuilder().serializeNulls()
+                val gson = gsonBuilder.create()
+
+                val map = gson.fromJson(response, Map::class.java)
+
+                if(map["error"] != null) {
+                    completion.invoke(null, map["error"] as String)
+                } else {
+                    var user = gson.fromJson(response, CabinUser::class.java)
+                    completion.invoke(user, "")
+                }
+            } else {
+                completion.invoke(null, response)
+            }
+        }
+
 
     }
 

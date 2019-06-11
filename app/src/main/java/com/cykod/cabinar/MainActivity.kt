@@ -28,21 +28,20 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var apiClient: ApiClient
 
-    private var apiToken: String? = null
-
     val ASK_FOR_LOCATION_PERMISSION = 12
 
-    private lateinit var sharedPref:SharedPreferences
+
+    fun getApiToken():String? {
+        var sharedPref = this.getSharedPreferences("cabinar",Context.MODE_PRIVATE)
+        return sharedPref.getString("api_token",null)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.titlebar))
 
-        sharedPref = this.getPreferences(Context.MODE_PRIVATE)
-        apiToken = sharedPref.getString("api_token",null)
-
-        apiClient = ApiClient(applicationContext, apiToken)
+        apiClient = ApiClient(applicationContext, getApiToken())
 
         listView = findViewById<ListView>(R.id.spacelist)
 
@@ -136,6 +135,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun grabLocation() {
+
+        apiClient.apiToken = getApiToken()
         swipeRefreshLayout.isRefreshing = true
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION

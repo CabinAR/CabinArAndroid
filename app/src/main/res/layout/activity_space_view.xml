@@ -17,5 +17,13 @@
                 android:id="@+id/webview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-        />
+        >
+        </WebView>
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" app:srcCompat="@drawable/fit_to_scan"
+                tools:layout_editor_absoluteY="270dp" tools:layout_editor_absoluteX="136dp"
+                android:id="@+id/fit_to_scan" android:scaleType="centerInside"/>
+
+
 </FrameLayout>

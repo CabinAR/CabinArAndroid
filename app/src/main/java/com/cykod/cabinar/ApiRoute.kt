@@ -46,5 +46,5 @@ sealed class ApiRoute {
 
     data class GetSpaces(var latitude: Double?, var longitude: Double?, var apiToken: String?, var ctx: Context) : ApiRoute()
     data class GetSpace(var spaceId: Int, var apiToken: String?, var ctx: Context) : ApiRoute()
-    data class GetUser(var apiToken: String) : ApiRoute()
+    data class GetUser(var apiToken: String?, var ctx:Context) : ApiRoute()
 }
