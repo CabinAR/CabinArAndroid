@@ -11,6 +11,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.ListView
 import android.widget.ArrayAdapter
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -134,6 +135,16 @@ class MainActivity : AppCompatActivity() {
         grabLocation()
     }
 
+    fun errorRetry(message:String) {
+        AlertDialog.Builder(this)
+            .setTitle("Error")
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton("retry") { _, _ ->
+                this.grabLocation()
+            }.show();
+    }
+
     fun grabLocation() {
 
         apiClient.apiToken = getApiToken()
@@ -168,7 +179,7 @@ class MainActivity : AppCompatActivity() {
                 adapter.notifyDataSetChanged()
 
             } else {
-
+                errorRetry(message)
             }
         }
     }

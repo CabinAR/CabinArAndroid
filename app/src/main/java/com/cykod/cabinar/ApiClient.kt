@@ -7,6 +7,7 @@ import com.android.volley.toolbox.DiskBasedCache
 import com.android.volley.toolbox.HurlStack
 import com.android.volley.toolbox.StringRequest
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonSyntaxException
 
 class ApiClient(private val ctx: Context, var apiToken: String?) {
 
@@ -79,9 +80,14 @@ class ApiClient(private val ctx: Context, var apiToken: String?) {
                 val gsonBuilder = GsonBuilder().serializeNulls()
                 val gson = gsonBuilder.create()
 
-                var spaceList = gson.fromJson(response, Array<CabinSpace>::class.java).toList()
-                var spaces: ArrayList<CabinSpace> = ArrayList(spaceList)
-                completion.invoke(spaces, "")
+                try {
+                    var spaceList = gson.fromJson(response, Array<CabinSpace>::class.java).toList()
+                    var spaces: ArrayList<CabinSpace> = ArrayList(spaceList)
+                    completion.invoke(spaces, "")
+                } catch(e: JsonSyntaxException) {
+                    completion.invoke(null, "There was a problem reaching the server")
+                }
+
             } else {
                 completion.invoke(null, response)
             }
