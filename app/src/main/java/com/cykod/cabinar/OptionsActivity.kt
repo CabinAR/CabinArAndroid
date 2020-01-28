@@ -30,7 +30,7 @@ class OptionsActivity : AppCompatActivity() {
             if(apiToken == null) {
                 remove("api_token")
             } else {
-                putString("api_token",apiToken!!)
+                putString("api_token", apiToken!!)
             }
             apiClient.apiToken = apiToken
             commit()
@@ -55,7 +55,8 @@ class OptionsActivity : AppCompatActivity() {
         }
 
         logout_button.setOnClickListener {
-            apiClient.apiToken = null
+            setApiToken(null)
+            user = null
             getLogin()
         }
 
@@ -77,7 +78,8 @@ class OptionsActivity : AppCompatActivity() {
                     user = loggedInUser
                     showLogout()
                 } else {
-                    apiClient.apiToken = null
+                    setApiToken(null)
+                    user = null
                     showLogin(message)
                 }
             }

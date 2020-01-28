@@ -6,6 +6,7 @@ import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.AttributeSet
@@ -31,6 +32,11 @@ import com.google.ar.core.exceptions.ImageInsufficientQualityException
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
+import java.net.HttpURLConnection
+import java.net.URL
+
 
 class SpaceViewActivity : AppCompatActivity() {
 
@@ -40,6 +46,8 @@ class SpaceViewActivity : AppCompatActivity() {
 
     private var spaceId: Int = 0
     private var cabinSpace:CabinSpace? = null
+
+    private var activePieces:HashMap<String,CabinPiece> = HashMap<String,CabinPiece>()
 
     private lateinit var apiClient: ApiClient
 
@@ -81,11 +89,22 @@ class SpaceViewActivity : AppCompatActivity() {
         arFragment.getPlaneDiscoveryController().setInstructionView(null)
         arFragment.getArSceneView().getPlaneRenderer().setEnabled(false)
 
-        spaceId = intent.extras!!.getInt(EXTRA_ID)
 
+        val action: String? = intent?.action
+        val intentData: Uri? = intent?.data
 
-        var sharedPref = this.getSharedPreferences("cabinar",Context.MODE_PRIVATE)
-        var apiToken = sharedPref.getString("api_token",null)
+        var apiToken:String? = null;
+
+        // Query params from the intent link
+        if(intentData != null && intentData.host == "space") {
+            spaceId = intentData!!.getQueryParameter("space_id")!!.toInt()
+            apiToken = intentData!!.getQueryParameter("cabin_key")
+        } else {
+            spaceId = intent.extras!!.getInt(EXTRA_ID)
+            var sharedPref = this.getSharedPreferences("cabinar",Context.MODE_PRIVATE)
+            apiToken = sharedPref.getString("api_token",null)
+        }
+
 
         apiClient = ApiClient(applicationContext,apiToken)
 
@@ -103,8 +122,12 @@ class SpaceViewActivity : AppCompatActivity() {
         })
         arWebview.loadUrl("file:///android_asset/WebAssets/index.html")
 
+        refresh_button.setOnClickListener {
+            resetTracking()
+        };
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WebView.setWebContentsDebuggingEnabled(true);
+            //WebView.setWebContentsDebuggingEnabled(true);
         }
     }
 
@@ -132,39 +155,63 @@ class SpaceViewActivity : AppCompatActivity() {
     fun setupSpace() {
         setAssets()
 
+        val future = doAsync {
+            // do your background thread task
 
+            val markerPieces = cabinSpace!!.pieces.filter { it.markerUrl != null  && it.markerUrl != "" }
 
-        val markerPieces = cabinSpace!!.pieces.filter { it.markerUrl != null }
+            val context = applicationContext
 
-        val context = applicationContext
+            var bitmaps: MutableList<Bitmap?> = mutableListOf()
+            var piecesWithBitmaps: MutableList<CabinPiece> = mutableListOf()
 
-        var bitmaps: MutableList<Bitmap?> = mutableListOf()
-        var piecesWithBitmaps: MutableList<CabinPiece> = mutableListOf()
+            markerPieces.map { piece ->
+                val url = URL(piece.markerUrl)
+                val connection = url.openConnection() as HttpURLConnection
 
+                val s = connection.getInputStream()
+                val img = BitmapFactory.decodeStream(s )
 
-        markerPieces.map { piece ->
-            Picasso.with(context).load(piece.markerUrl).into(object : com.squareup.picasso.Target {
-                override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-                    // loaded bitmap is here (bitmap)
-                    bitmaps.add(bitmap)
-                    piecesWithBitmaps.add(piece)
-                    if(bitmaps.count() == markerPieces.count()) {
-                        loadBitmaps(piecesWithBitmaps, bitmaps)
-                    }
-                }
-                override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
-                override fun onBitmapFailed(errorDrawable: Drawable?) {
-                    // Handle showing error messag
-                }
-            })
+                piecesWithBitmaps.add(piece)
+                bitmaps.add(img)
+            }
+
+            uiThread {
+                // use result here if you want to update ui
+                loadBitmaps(piecesWithBitmaps, bitmaps)
+            }
         }
 
         // asfd
         // get all the images
     }
 
+    fun resetTracking() {
+        // This is stupid but currently seems to be the best option
+        // for sceneForm
+        // https://github.com/google-ar/sceneform-android-sdk/issues/253
+        finish();
+        overridePendingTransition(0, 0);
+        startActivity(getIntent());
+        overridePendingTransition(0, 0);
+
+        /*
+        arWebview.evaluateJavascript("resetTracking()", { })
+
+        augmentedImageMap.forEach { (key, value) ->
+            arFragment.arSceneView.scene.removeChild(value)
+            value.anchor?.detach()
+            value.setParent(null)
+        }
+
+        augmentedImageMap.clear()
+
+        fit_to_scan.visibility = View.VISIBLE
+        showScan = true
+        */
+    }
+
     fun loadBitmaps(pieces: MutableList<CabinPiece>, bitmaps: MutableList<Bitmap?>) {
-        addPiecesToWebview()
 
         if(arFragment.imageDatabase != null) {
 
@@ -178,6 +225,7 @@ class SpaceViewActivity : AppCompatActivity() {
                             pieces[index].id.toString(),
                             bitmap
                         )
+                        activePieces[pieces[index].id.toString()] = pieces[index]
                         Log.e("CabinAR", "Added images $pos")
                     } catch(e: ImageInsufficientQualityException) {
                         errorOut("Space has bad Markers", "The markers are of insufficient quality. Please upload better markers.")
@@ -200,12 +248,10 @@ class SpaceViewActivity : AppCompatActivity() {
 
     fun assetString() : String {
         var allAssets = ""
-        if(cabinSpace!!.pieces != null) {
-            for (piece in cabinSpace!!.pieces) {
-                if (piece.assets != null) {
-                    val assets = (piece.assets ?: "").replace("\"/ar-file", "\"https://www.cabin-ar.com/ar-file")
-                    allAssets = allAssets + assets + "\n"
-                }
+        for (piece in cabinSpace!!.pieces) {
+            if (piece.assets != null) {
+                val assets = (piece.assets ?: "").replace("\"/ar-file", "\"https://www.cabin-ar.com/ar-file")
+                allAssets = allAssets + assets + "\n"
             }
         }
         return "addAssets(`$allAssets`);"
@@ -285,6 +331,11 @@ class SpaceViewActivity : AppCompatActivity() {
                         node.image = augmentedImage
                         augmentedImageMap[augmentedImage] = node
                         arFragment.arSceneView.scene.addChild(node)
+
+                        val piece = activePieces[augmentedImage.name]
+                        if(piece != null) {
+                            addPieceToWebview(piece)
+                        }
                     } else {
                         node = augmentedImageMap[augmentedImage]!! as AugmentedImageNode
                     }

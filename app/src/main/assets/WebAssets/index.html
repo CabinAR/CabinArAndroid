@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html lang='en'>
 <head>
-<style>
+    <style>
     body { margin: 0; }
         canvas { width: 100%; height: 100% }
 </style>
-<script src='./aframe.min.js'></script>
-<script src='./aframe-text-geometry-component.min.js'></script>
-<script src='./aframe-particle-system-component.min.js'></script>
+    <script src='./aframe.min.js'></script>
+    <script src='./aframe-text-geometry-component.min.js'></script>
+    <script src='./aframe-particle-system-component.min.js'></script>
 </head>
 <body>
-    <a-scene vr-mode-ui="enabled: false" background="transparent:true;" cursor="rayOrigin: mouse">
-        <a-assets id='cabinar-assets'></a-assets>
-        <a-entity id="cameraWrapper"  position="1 0 3" rotation="0 0 0">
-            <a-entity camera id='theCamera'></a-entity>
-        </a-entity>
-        <a-entity id="cabinar-scene" position="0 0 0">
-        </a-entity>
+<a-scene vr-mode-ui="enabled: false" background="transparent:true;" cursor="rayOrigin: mouse">
+    <a-assets id='cabinar-assets'></a-assets>
+    <a-entity id="cameraWrapper"  position="0 0 3" rotation="0 0 0">
+        <a-entity camera id='theCamera'></a-entity>
+    </a-entity>
+    <a-entity id="cabinar-scene" position="0 0 0">
+    </a-entity>
 
-    </a-scene>
+</a-scene>
 
-    <script>
+<script>
     var pieces = {};
     var wrappers = {};
     var sceneEl;
@@ -45,6 +45,16 @@
 
     function addAssets(assets) {
         assetsEl.innerHTML = assets;
+    }
+
+    function resetTracking() {
+        Object.keys(pieces).forEach(function(pieceId) {
+                                    //var object3D = wrappers[pieceId].object3D;
+                                    //object3D.visible = false;
+                                    sceneEl.removeChild(wrappers[pieceId]);
+                                    });
+        pieces = {}
+        wrappers = {}
     }
 
     function setPieceEntity(pieceId, pieceScale, pieceMarkup ) {

@@ -41,6 +41,13 @@
                 android:name=".SpaceViewActivity"
                 android:label="@string/title_activity_space_view"
                 android:theme="@style/NoActionBar">
+            <intent-filter android:label="@string/cabin_ar_preview">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="cabinar"
+                      android:host="space" />
+            </intent-filter>
         </activity>
         <activity android:name=".MainActivity">
             <intent-filter>

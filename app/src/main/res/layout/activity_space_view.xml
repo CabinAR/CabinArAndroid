@@ -24,6 +24,11 @@
                 android:layout_height="wrap_content" app:srcCompat="@drawable/fit_to_scan"
                 tools:layout_editor_absoluteY="270dp" tools:layout_editor_absoluteX="136dp"
                 android:id="@+id/fit_to_scan" android:scaleType="centerInside"/>
+        <ImageView
+                android:layout_width="50dip"
+                android:layout_height="48dip"
+                android:id="@+id/refresh_button" android:layout_gravity="top|end"
+                app:srcCompat="@drawable/cabinicon_refresh" android:padding="10dip"/>
 
 
 </FrameLayout>

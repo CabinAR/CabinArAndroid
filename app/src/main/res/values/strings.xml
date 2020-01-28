@@ -14,4 +14,5 @@
     <string name="logout">logout</string>
     <string name="user_account">User Account</string>
     <string name="user_user_com">user@user.com</string>
+    <string name="cabin_ar_preview">CabinAR Preview</string>
 </resources>
