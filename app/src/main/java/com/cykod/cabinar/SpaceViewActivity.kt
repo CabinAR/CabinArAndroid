@@ -115,6 +115,8 @@ class SpaceViewActivity : AppCompatActivity() {
         webSettings.allowUniversalAccessFromFileURLs = true
         webSettings.javaScriptEnabled = true
 
+
+
         arWebview.setWebViewClient(object : WebViewClient() {
             override fun onPageFinished(view: WebView, url: String) {
                 getSpace(spaceId)
@@ -211,7 +213,15 @@ class SpaceViewActivity : AppCompatActivity() {
         */
     }
 
+    fun setFocusMode() {
+        var config = arFragment.arSceneView.session!!.config
+        config.focusMode = Config.FocusMode.AUTO
+        config.updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
+        arFragment.arSceneView.session!!.configure(config)
+    }
+
     fun loadBitmaps(pieces: MutableList<CabinPiece>, bitmaps: MutableList<Bitmap?>) {
+        setFocusMode();
 
         if(arFragment.imageDatabase != null) {
 
@@ -234,6 +244,8 @@ class SpaceViewActivity : AppCompatActivity() {
                 }
             }
             config.augmentedImageDatabase = imageDatabase
+            config.focusMode = Config.FocusMode.AUTO
+            config.updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
 
             arFragment.arSceneView.session!!.configure(config)
 
